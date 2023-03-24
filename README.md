@@ -1,4 +1,5 @@
 <div align="center">
+  
 # SketchXAI: A First Look at Explainability for Human Sketches
 
 <a href="https://pytorch.org/get-started/locally/"><img alt="PyTorch" src="https://img.shields.io/badge/PyTorch-ee4c2c?logo=pytorch&logoColor=white"></a>
