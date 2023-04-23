@@ -1,0 +1,11 @@
+h5py==2.10.0
+huggingface-hub==0.13.4
+ninja==1.11.1
+opencv-python==4.7.0.72
+opencv-python-headless==4.6.0.66
+rdp==0.8
+scipy==1.9.3
+torch==1.9.1
+torchvision==0.10.1
+transformers==4.27.4
+wandb==0.12.15
