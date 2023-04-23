@@ -110,71 +110,67 @@ def train(test_loader, model, criterion, opt, visualisation):
     if not os.path.exists(base_path):
         os.makedirs(base_path)
 
-    # for it, data_batch in enumerate(test_loader):
-    it = 0
-    data_batch = test_loader.dataset.get_item('bicycle', 24)
-    data_batch = train_data_collate([data_batch])
+    for it, data_batch in enumerate(test_loader):
+        input_strokes = data_batch['points_offset'].cuda()
+        input_positions = data_batch['position_list'].cuda()
+        stroke_point_number = data_batch['stroke_number']
+        stroke_mask = data_batch['stroke_mask'].cuda() if opt['mask'] else None
+        label = data_batch['category']
 
-    input_strokes = data_batch['points_offset'].cuda()
-    input_positions = data_batch['position_list'].cuda()
-    stroke_point_number = data_batch['stroke_number']
-    stroke_mask = data_batch['stroke_mask'].cuda() if opt['mask'] else None
-    label = data_batch['category']
+        image_table = visualisation.wandb_create_table(it, image_table)
+        save_path = f'{base_path}{it}/'
+        predictions = visualisation.log_sample(it, test_loader.dataset.categories[label], data_batch['points_offset'].cuda(), data_batch['position_list'].cuda(), data_batch['stroke_number'])
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
+        SketchUtil.plt_generate_image(input_strokes, input_positions, stroke_point_number, save_path=f'{save_path}origin.pdf')
 
-    image_table = visualisation.wandb_create_table(it, image_table)
-    save_path = f'{base_path}{it}/'
-    predictions = visualisation.log_sample(it, test_loader.dataset.categories[label], data_batch['points_offset'].cuda(), data_batch['position_list'].cuda(), data_batch['stroke_number'])
-    if not os.path.exists(save_path):
-        os.makedirs(save_path)
-    SketchUtil.plt_generate_image(input_strokes, input_positions, stroke_point_number, save_path=f'{save_path}origin.pdf')
+        if opt['analysis'] == recovery:
+            # input_positions = Pertubation.reset_position(input_positions, -1)
+            input_positions = Pertubation.random_position(input_positions, -1)
+            visualisation.log_recovery_pertubation(predictions, input_strokes, input_positions, stroke_point_number)
+        else:
+            label = Pertubation.random_label(data_batch['category'], test_loader.dataset.num_categories())
+            visualisation.log_attack_pertubation(predictions, test_loader.dataset.categories[label])
 
-    if opt['analysis'] == recovery:
-        # input_positions = Pertubation.reset_position(input_positions, -1)
-        input_positions = Pertubation.random_position(input_positions, -1)
-        visualisation.log_recovery_pertubation(predictions, input_strokes, input_positions, stroke_point_number)
-    else:
-        label = Pertubation.random_label(data_batch['category'], test_loader.dataset.num_categories())
-        visualisation.log_attack_pertubation(predictions, test_loader.dataset.categories[label])
+        input_positions = nn.Parameter(input_positions)
+        learning_parameters = input_positions
+        optim = get_optim({input_positions}, opt['lr'])
 
-    input_positions = nn.Parameter(input_positions)
-    learning_parameters = input_positions
-    optim = get_optim({input_positions}, opt['lr'])
+        scheduler = CosineAnnealingLR(optim, T_max=optim_times, eta_min=1e-5)
+        original_category = test_loader.dataset.categories[data_batch['category']]
+        target_category = test_loader.dataset.categories[label]
+        key = f'{original_category}_{target_category}'
 
-    scheduler = CosineAnnealingLR(optim, T_max=optim_times, eta_min=1e-5)
-    original_category = test_loader.dataset.categories[data_batch['category']]
-    target_category = test_loader.dataset.categories[label]
-    key = f'{original_category}_{target_category}'
+        file_names = []
+        for i in range(optim_times):
+            optim.zero_grad()
+            logits, hidden_states, attentions = model(input_strokes, input_positions, stroke_point_number, bool_masked_pos=stroke_mask)
+            loss = criterion(logits, label.cuda())
+            loss.backward()
 
-    file_names = []
-    for i in range(optim_times):
-        optim.zero_grad()
-        logits, hidden_states, attentions = model(input_strokes, input_positions, stroke_point_number, bool_masked_pos=stroke_mask)
-        loss = criterion(logits, label.cuda())
-        loss.backward()
+            # image = SketchUtil.generate_image(input_strokes, input_positions, stroke_point_number)
+            softmax = torch.softmax(logits.detach(), dim=1)
+            target_score = softmax[0][label].detach().cpu().item()
+            original_score = softmax[0][data_batch['category']].detach().cpu().item()
+            # SketchUtil.save_gif(image, test_loader.dataset.categories[data_batch['category']], original_score, file_names, it, i, save_path, target_score, test_loader.dataset.categories[label])
 
-        # image = SketchUtil.generate_image(input_strokes, input_positions, stroke_point_number)
-        softmax = torch.softmax(logits.detach(), dim=1)
-        target_score = softmax[0][label].detach().cpu().item()
-        original_score = softmax[0][data_batch['category']].detach().cpu().item()
-        # SketchUtil.save_gif(image, test_loader.dataset.categories[data_batch['category']], original_score, file_names, it, i, save_path, target_score, test_loader.dataset.categories[label])
+            SketchUtil.plt_generate_image(input_strokes, input_positions, stroke_point_number, save_path=save_path + f'iter_{i}.pdf')
 
-        SketchUtil.plt_generate_image(input_strokes, input_positions, stroke_point_number, save_path=save_path + f'iter_{i}.pdf')
+            cur_lr = optim.state_dict()['param_groups'][0]['lr'] + 1e-8
+            clip_grad_norm_(learning_parameters, max_norm=0.5 / cur_lr)
+            optim.step()
+            scheduler.step()
 
-        cur_lr = optim.state_dict()['param_groups'][0]['lr'] + 1e-8
-        clip_grad_norm_(learning_parameters, max_norm=0.5 / cur_lr)
-        optim.step()
-        scheduler.step()
+            score = "%.2f%%" % (target_score * 100)
+            predict = f'[current prediction]:{test_loader.dataset.categories[torch.argmax(logits)]} {target_category}:{score}'
+            if opt['analysis'] != recovery:
+                original_score = "%.2f%%" % (original_score * 100)
+                predict = predict + ' ' + original_category + ':' + original_score
+            print(f'Index: {it}  Optim: {i}  Loss: {loss.item()}  Predict: {predict}')
 
-        score = "%.2f%%" % (target_score * 100)
-        predict = f'[current prediction]:{test_loader.dataset.categories[torch.argmax(logits)]} {target_category}:{score}'
-        if opt['analysis'] != recovery:
-            original_score = "%.2f%%" % (original_score * 100)
-            predict = predict + ' ' + original_category + ':' + original_score
-        print(f'Index: {it}  Optim: {i}  Loss: {loss.item()}  Predict: {predict}')
+            visualisation.log_optimization(i, predictions, predict, input_strokes, input_positions, stroke_point_number, original_category)
 
-        visualisation.log_optimization(i, predictions, predict, input_strokes, input_positions, stroke_point_number, original_category)
-
-    visualisation.wandb_upload_table(it, image_table, predictions)
+        visualisation.wandb_upload_table(it, image_table, predictions)
 
 def main(opt):
     global max_stroke
