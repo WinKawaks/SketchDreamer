@@ -7,6 +7,10 @@
 
 </div>
 
+This paper, for the very first time, introduces human sketches to the landscape of XAI. We argue that, sketch as a "human-centred" data form, represents a natural interface to study explainability. We focus on cultivating sketch-specific explainability designs. This starts by identifying strokes as a unique building block that offers a degree of flexibility in object construction and manipulation impossible in photos. Following this, we design a simple explainability-friendly sketch encoder that accommodates intrinsic properties of strokes: shape, location, and order. We then move on to define the first ever XAI task for sketch, that of stroke location inversion SLI. Just as we have heat maps for photos, and correlation matrices for text, SLI offers an explainability angle to sketch in terms of asking a network how well it can recover stroke locations of an unseen sketch. We offer qualitative results for readers to interpret, in the form of snapshots of the SLI process in the paper and videos here. A minor but interesting note is that, thanks to its sketch-specific design, our sketch encoder also yields the best sketch recognition accuracy to date, while having the smallest number of parameters.
+
+![overview](figure/overview.png)
+
 ## Link
 
 [Home page](https://sketchxai.github.io/)
