@@ -5,7 +5,6 @@
 <a href="https://pytorch.org/get-started/locally/"><img alt="PyTorch" src="https://img.shields.io/badge/PyTorch-ee4c2c?logo=pytorch&logoColor=white"></a>
 [![Conference](http://img.shields.io/badge/BMVC-2023-6790AC.svg)](https://cvpr.thecvf.com/)
 [![Paper](http://img.shields.io/badge/Paper-arxiv.2304.11744-B31B1B.svg)](https://arxiv.org/abs/2304.11744)
-<a href="https://sketchxai.github.io/"><img alt="page" src="https://img.shields.io/badge/Webpage-0054a6?logo=Google%20chrome&logoColor=white"></a>
 
 </div>
 
