@@ -57,3 +57,5 @@ sh run.sh --bbox "0.3,0.3,0.7,0.7"
 # 4 curves with the starting points located in 4 corners
 sh run.sh --num_strokes 4 --init_point "0,0,0,1,1,0,1,1"
 ```
+
+ When the value of **num_aug_clip** is set to 1, the data augmentation will be canceled. Data augmentation will make each iteration significantly slower, but will produce better results.
