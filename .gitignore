@@ -1,0 +1,6 @@
+__pycache__/
+input/
+output/
+U2Net_/
+.idea/
+.pth
