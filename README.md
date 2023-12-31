@@ -1,76 +1,29 @@
 <div align="center">
   
-# SketchXAI: A First Look at Explainability <br> for Human Sketches
+# SketchDreamer: Interactive Text-Augmented <br> Creative Sketch Ideation
 
 <a href="https://pytorch.org/get-started/locally/"><img alt="PyTorch" src="https://img.shields.io/badge/PyTorch-ee4c2c?logo=pytorch&logoColor=white"></a>
-[![Conference](http://img.shields.io/badge/CVPR-2023-6790AC.svg)](https://cvpr.thecvf.com/)
-[![Paper](http://img.shields.io/badge/Paper-arxiv.2304.11744-B31B1B.svg)](https://arxiv.org/abs/2304.11744)
+[![Conference](http://img.shields.io/badge/BMVC-2023(Oral)-6790AC.svg)](https://bmvc2023.org/)
+[![Paper](http://img.shields.io/badge/Paper-arxiv.2308.14191-B31B1B.svg)](https://arxiv.org/abs/2308.14191)
 
 </div>
 
-This paper, for the very first time, introduces human sketches to the landscape of XAI. We argue that, sketch as a "human-centred" data form, represents a natural interface to study explainability. We focus on cultivating sketch-specific explainability designs. This starts by identifying strokes as a unique building block that offers a degree of flexibility in object construction and manipulation impossible in photos. Following this, we design a simple explainability-friendly sketch encoder that accommodates intrinsic properties of strokes: shape, location, and order. We then move on to define the first ever XAI task for sketch, that of stroke location inversion SLI. Just as we have heat maps for photos, and correlation matrices for text, SLI offers an explainability angle to sketch in terms of asking a network how well it can recover stroke locations of an unseen sketch. We offer qualitative results for readers to interpret, in the form of snapshots of the SLI process in the paper and videos here. A minor but interesting note is that, thanks to its sketch-specific design, our sketch encoder also yields the best sketch recognition accuracy to date, while having the smallest number of parameters.
+Artificial Intelligence Generated Content (AIGC) has shown remarkable progress in generating realistic images. However, in this paper, we take a step "backward" and address AIGC for the most rudimentary visual modality of human sketches. Our objective is on the creative nature of sketches, and that creative sketching should take the form of an interactive process. We further enable text to drive the sketch ideation process, allowing creativity to be freely defined, while simultaneously tackling the challenge of "I can't sketch". We present a method to generate controlled sketches using a text-conditioned diffusion model trained on pixel representations of images. Our proposed approach, referred to as SketchDreamer, integrates a differentiable rasteriser of Bezier curves that optimises an initial input to distil abstract semantic knowledge from a pretrained diffusion model. We utilise Score Distillation Sampling to learn a sketch that aligns with a given caption, which importantly enable both text and sketch to interact with the ideation process. Our objective is to empower non-professional users to create sketches and, through a series of optimisation processes, transform a narrative into a storyboard by expanding the text prompt while making minor adjustments to the sketch input. Through this work, we hope to aspire the way we create visual content, democratise the creative process, and inspire further research in enhancing human creativity in AIGC.
 
 ![overview](figure/overview.png)
-
-## Link
-
-[Home page](https://sketchxai.github.io/)
-
 
 ## Citation
 
 ```
-@inproceedings{qu2023sketchxai,
-  title={SketchXAI: A First Look at Explainability for Human Sketches},
-  author={Qu, Zhiyu and Gryaditskaya, Yulia and Li, Ke and Pang, Kaiyue and Xiang, Tao and Song, Yi-Zhe},
-  booktitle={CVPR},
+@inproceedings{qu2023sketchdreamer,
+  title={SketchDreamer: Interactive Text-Augmented Creative Sketch Ideation},
+  author={Qu, Zhiyu and Xiang, Tao and Song, Yi-Zhe},
+  booktitle={BMVC},
   year={2023}
 }
 ```
 
+## Code
 
-## Instructions
+We are working on releasing the code... 🏗️ 🚧 🔨 Please stay tuned!
 
-
-### Dependencies
-
-```
-pip install -r requirements.txt
-```
-
-### QuickDraw Dataset
-
-Download the QuickDraw data from [here](https://github.com/tensorflow/magenta/tree/master/magenta/models/sketch_rnn#datasets). Use ```quickdraw_to_hdf5.py``` and set **Category30** or **Category345** to preprocess the data and generate corresponding hdf5 files.
-
-### Training
-
-Note: We use DDP for all our training processes. Testing/inference with DDP is somewhat more tricky than training. **You should ensure the number of testing data is divisible to the number of your GPUs, otherwise the results might be incorrect.**
-Say, there’re 100 batches in your testing set, while there are 8 GPUs (100 % 8 = 4). The DistributedSampler will repeat part of the data and expand it to 104 (104 % 8 = 0) such that the data could be evenly loaded into each GPU.
-
-For our work, we use **5 GPUs** and **a batch size of 100** to match the testset of QuickDraw.
-
-#### Train QuickDraw on 345 categories with ViT-Base/Tiny
-
-```
-$Home/anaconda/bin/python -m torch.distributed.launch --nproc_per_node 5 main.py -log 'vit_base_log/' -ckpt 'vit_base_ckpt/' -bs 100 -dataset_path '/home/Quickdraw/Category345/' -embedding_dropout 0.1 -attention_dropout 0.1 -mask False -pretrain_path 'google/vit-base-patch16-224'
-
-$Home/anaconda/bin/python -m torch.distributed.launch --nproc_per_node 5 main.py -log 'vit_tiny_log/' -ckpt 'vit_tiny_ckpt/' -bs 100 -dataset_path '/home/Quickdraw/Category345/' -embedding_dropout 0.1 -attention_dropout 0.1 -mask False -pretrain_path 'WinKawaks/vit-tiny-patch16-224'
-```
-
-#### Use our trained models
-
-```
-$Home/anaconda/bin/python -m torch.distributed.launch --nproc_per_node 5 main.py -log 'vit_base_log/' -ckpt 'vit_base_ckpt/' -bs 100 -dataset_path '/home/Quickdraw/Category345/' -embedding_dropout 0.1 -attention_dropout 0.1 -mask False -pretrain_path 'WinKawaks/SketchXAI-Base-QuickDraw345'
-
-$Home/anaconda/bin/python -m torch.distributed.launch --nproc_per_node 5 main.py -log 'vit_tiny_log/' -ckpt 'vit_tiny_ckpt/' -bs 100 -dataset_path '/home/Quickdraw/Category345/' -embedding_dropout 0.1 -attention_dropout 0.1 -mask False -pretrain_path 'WinKawaks/SketchXAI-Tiny-QuickDraw345'
-```
-
-#### Stroke location inversion
-
-Recovery/Transfer
-
-```
-$Home/anaconda/bin/python inversion/main_inversion.py -pretrain_path 'WinKawaks/SketchXAI-Base-QuickDraw30' -dataset_path '/home/Quickdraw/Category30' -analysis 'recovery'
-
-$Home/anaconda/bin/python inversion/main_inversion.py -pretrain_path 'WinKawaks/SketchXAI-Base-QuickDraw30' -dataset_path '/home/Quickdraw/Category30' -analysis 'transfer'
-```
