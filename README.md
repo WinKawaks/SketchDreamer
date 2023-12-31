@@ -34,8 +34,26 @@ This repository is based on [CLIPasso](https://github.com/yael-vinker/CLIPasso) 
 pip install --upgrade diffusers accelerate transformers
 ```
 
-### Training
+### Script
 
 ```
 sh run.sh
+```
+
+### Parameters
+
+The optimisation process is susceptible to the initialsation of Bezier curves. We support the following methods to set the positions of strokes.
+
+**Bounding box**: follows the format "x1, y1, x2, y2". All parameters should be in the range 0 to 1.
+
+```
+# a square area with width and height of (0.4 * 512)
+sh run.sh --bbox "0.3,0.3,0.7,0.7"
+```
+
+**Coordinates**: follows the format "x1,y1,x2,y2,...,xN,yN". All parameters should be in the range 0 to 1.
+
+```
+# 4 curves with the starting points located in 4 corners
+sh run.sh --num_strokes 4 --init_point "0,0,0,1,1,0,1,1"
 ```
