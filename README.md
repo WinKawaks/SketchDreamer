@@ -23,7 +23,19 @@ Artificial Intelligence Generated Content (AIGC) has shown remarkable progress i
 }
 ```
 
-## Code
+## Instructions
 
-We are working on releasing the code... 🏗️ 🚧 🔨 Please stay tuned!
 
+### Dependencies
+
+This repository is based on [CLIPasso](https://github.com/yael-vinker/CLIPasso) and [Stable-Dreamfusion](https://github.com/ashawkey/stable-dreamfusion). We would like to thank the authors of these work for publicly releasing their code. Please follow the dependencies of CLIPasso to install DiffVG. After running CLIPasso successfully, please install the following libraries.
+
+```
+pip install --upgrade diffusers accelerate transformers
+```
+
+### Training
+
+```
+sh run.sh
+```
