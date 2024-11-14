@@ -1,8 +1,8 @@
 version: "3.1"
 
 services:
-    klPhuc:
-        image: klphuc
+    SketchDreamer:
+        image: SketchDreamer
         build: ./KhoaLuan
         stdin_open: true
         tty: true
