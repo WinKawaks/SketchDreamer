@@ -1,3 +1,7 @@
+It was a huge pain intheass trying to get the original repository running, but I have managed to create a dockerfile for it, check the BuCuTDi folder for it.
+U gotta find the "u2net.pth" file to place it into the "./BuCuTDi/KhoaLuan/" folder before running docker.
+then all you have to do is run file start.bat (or type docker compose up in command line at the BuCuTDi directory).
+
 <div align="center">
   
 # SketchDreamer: Interactive Text-Augmented <br> Creative Sketch Ideation
