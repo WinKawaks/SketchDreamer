@@ -1,0 +1,10 @@
+version: "3.1"
+
+services:
+    klPhuc:
+        image: klphuc
+        build: ./KhoaLuan
+        stdin_open: true
+        tty: true
+        ports:
+            - 5001:5001
