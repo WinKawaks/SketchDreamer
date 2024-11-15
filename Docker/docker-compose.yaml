@@ -1,0 +1,10 @@
+version: "3.1"
+
+services:
+    sketch_dreamer:
+        image: sketch_dreamer
+        build: ./KhoaLuan
+        stdin_open: true
+        tty: true
+        ports:
+            - 5001:5001

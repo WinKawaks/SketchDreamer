@@ -1,0 +1,40 @@
+FROM yaelvinker/clipasso_docker
+#COPY . .
+SHELL ["/bin/bash", "-c"]
+RUN /bin/bash
+RUN cd /home
+WORKDIR /home
+#CLIPasso
+#Cloning
+RUN git clone https://github.com/yael-vinker/CLIPasso.git
+RUN rm /home/CLIPasso/U2Net_ -r
+RUN cd /home/CLIPasso
+WORKDIR /home/CLIPasso
+RUN git clone https://github.com/xuebinqin/U-2-Net.git /home/CLIPasso/U2Net_
+COPY u2net.pth /home/CLIPasso/U2Net_/saved_models
+#Installing
+RUN python3.7 -m venv clipsketch
+RUN source clipsketch/bin/activate
+RUN pip install -r requirements.txt
+RUN pip install git+https://github.com/openai/CLIP.git
+RUN git clone https://github.com/BachiLi/diffvg
+RUN cd /home/CLIPasso/diffvg
+WORKDIR /home/CLIPasso/diffvg
+RUN git submodule update --init --recursive
+RUN python setup.py install
+RUN pip install ipywidgets
+RUN pip install protobuf==3.20.*
+RUN pip install --upgrade diffusers accelerate transformers
+RUN pip install --upgrade torch torchvision torchaudio
+RUN cd /home
+WORKDIR /home
+RUN git clone https://github.com/WinKawaks/SketchDreamer.git
+RUN cd /home/SketchDreamer
+WORKDIR /home/SketchDreamer
+RUN rm run.sh
+COPY run.sh .
+RUN cp -R /home/CLIPasso/U2Net_ .
+#Thank god the author updated the file on github
+#RUN rm /home/SketchDreamer/CLIP_/clip/auxilary.py
+#COPY auxilary.py /home/SketchDreamer/CLIP_/clip/
+RUN sh run.sh
